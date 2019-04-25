@@ -92,7 +92,8 @@ contract TDHtoken
     /**
         *** 
     */
-    function approve(address _spender, uint256 _value) public returns (bool) {
+    function approve(address _spender, uint256 _currentValue, uint256 _value) public returns (bool) {
+        if (allowed[msg.sender][_spender] == _currentValue ) return false;
         allowed[msg.sender][_spender] = _value;
         emit Approval(msg.sender, _spender, _value);
         return true;
@@ -115,6 +116,7 @@ contract TDHtoken
 
     function _transfer(address _from, address _to, uint256 _value) internal returns (bool) {
         require( _to != address(0) );
+        require( _to != address(this) );
         require( balances[_from] >= _value );
         balances[_from] = balances[_from].sub(_value);
         balances[_to] = balances[_to].add(_value);
@@ -135,7 +137,7 @@ contract TDHtoken
     function approveAndCall(address _spender, uint256 _value, bytes _extraData) external returns (bool success) {
         require(canApproveCall == true);
         tokenRecipient spender = tokenRecipient(_spender);
-        if (approve(_spender, _value)) {
+        if (approve(_spender, _value, _value)) {
             spender.receiveApproval(msg.sender, _value, _extraData);
             return true;
         }
